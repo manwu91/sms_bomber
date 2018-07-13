@@ -3,6 +3,7 @@ from hashlib import md5
 from urllib.request import Request
 from urllib.request import urlopen
 from base64 import b64encode
+import logging
 import json
 
 
@@ -17,16 +18,16 @@ class Cloopen:
         self.balance = 0.0
 
     def load_valid_template_ids(self):
-        if self.template_ids:
-            return self.template_ids
-        resp = self.query_sms_template('')
-        if resp['statusCode'] == '000000':
-            self.template_ids = [d['id'] for d in resp['TemplateSMS'] if d['status'] == '1']
-            return self.template_ids
+        if not self.template_ids:
+            resp = self.query_sms_template('')
+            logging.debug('账号template_id: %r' % resp)
+            if resp['statusCode'] == '000000':
+                self.template_ids = [d['id'] for d in resp['TemplateSMS'] if d['status'] == '1']
+        return self.template_ids
 
-    def send_sms(self, recvr, template_id, * datas):
+    def send_sms(self, recvr, template_id, *datas):
         body = {'to': recvr, 'datas': datas, 'templateId': template_id, 'appId': self.appid}
-        return self._send_request("/Accounts/" + self.sid+ "/SMS/TemplateSMS", body=json.dumps(body))
+        return self._send_request("/Accounts/" + self.sid + "/SMS/TemplateSMS", body=json.dumps(body))
 
     def query_sms_template(self, template_id):
         """
@@ -46,7 +47,7 @@ class Cloopen:
         sig = md5(signature.encode('utf-8')).hexdigest().upper()
         # basic auth
         req = Request(Cloopen.URL + path + "?sig=" + sig)
-        req.add_header('Authorization', b64encode((self.sid+':'+ts).encode('utf-8')).strip())
+        req.add_header('Authorization', b64encode((self.sid + ':' + ts).encode('utf-8')).strip())
         req.add_header('Accept', 'application/json')
         req.add_header('Content-Type', 'application/json;charset=utf-8')
         if body:
@@ -65,11 +66,3 @@ class Cloopen:
 
     def __hash__(self, *args, **kwargs):
         return hash(self.sid)
-
-
-
-
-
-
-
-
