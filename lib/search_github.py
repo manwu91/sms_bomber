@@ -1,4 +1,4 @@
-from github import Github,ContentFile
+from github import Github, ContentFile
 from getpass import getpass
 from queue import Queue
 import logging
@@ -12,6 +12,7 @@ def extract(content):
     """
     从搜索结果中抽取字段
     """
+
     # 提取主要字段
     def search_field(keyword_and_pattern):
         keyword, pattern = keyword_and_pattern
@@ -35,38 +36,36 @@ def search_all(keyword, max_page=10, greenlet_count=4):
     :param greenlet_count 协程数量
     """
     paging = client.search_code(keyword)
-    total_page = min(max_page, paging.totalCount/20)
+    total_page = min(max_page, paging.totalCount / 20)
     tasks = Queue()
-    for i in range(1, total_page+1):
+    for i in range(1, total_page + 1):
         tasks.put(i)
     accounts = set()
 
     def _search():
         while not tasks.empty():
             try:
-                page_no = tasks.get()
+                page_no = tasks.get(block=False)
                 logging.info('正在搜索第%d页' % page_no)
                 contents = map(lambda x: x.decoded_content.decode('utf-8'), paging.get_page(page_no))
                 accounts.update({Cloopen(*p) for p in map(extract, contents) if p})
             except Exception as err:
                 logging.error(err)
                 break
+
     import gevent
     gevent.joinall([gevent.spawn(_search) for _ in range(greenlet_count)])
     return accounts
 
 
-def search(keyword='app.cloopen.com', qulifiers={}):
+def search(keyword='app.cloopen.com', **qulifiers):
     """
     同步搜索
     """
     paging = client.search_code(keyword, **qulifiers)
     # 最多只能查看1000条搜索结果
-    for i in range(1, min(50, paging.totalCount/20)):
+    for i in range(1, min(50, paging.totalCount / 20)):
         for item in paging.get_page(i):
             extracted = extract(item.decoded_content.decode('utf-8'))
             if extracted:
                 yield extracted
-
-
-
