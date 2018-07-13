@@ -1,2 +1,2 @@
 gevent==1.2.2
-PyGithub==1.39
+PyGithub==1.40
