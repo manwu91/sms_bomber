@@ -29,7 +29,7 @@ def extract(content):
         return account_sid, account_token, appid
 
 
-def search_all(keyword, max_page=10, greenlet_count=4):
+def search_all(keyword, max_page=10, greenlet_count=2):
     """
     通过协程并发搜索
     :param max_page 最大页数
